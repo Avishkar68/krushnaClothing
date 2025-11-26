@@ -17,11 +17,11 @@ export default function Navbar() {
         </div>
 
         {/* --- DESKTOP SEARCH BAR (Hidden on Mobile) --- */}
-        <div className="hidden md:flex justify-between mx-auto border border-[#2727272f] px-4 py-2 rounded-4xl cursor-pointer hover:shadow-sm transition-shadow">
-          <div className="">
+        <div className="hidden md:flex justify-between mx-auto border border-[#2727272f] px-4 py-2 rounded-4xl cursor-pointer  transition-shadow">
+          <div className=" font-normal ">
             <input 
               placeholder="search here..." 
-              className="w-[300px] lg:w-[360px] outline-none border-none bg-transparent placeholder-gray-400" 
+              className="w-[300px] lg:w-[360px] outline-none border-none  bg-transparent placeholder-gray-400" 
             />
           </div>
           <ChevronRight className="text-[#bebebecc]" />
