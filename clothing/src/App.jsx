@@ -10,6 +10,7 @@ import Orders from "./pages/Orders";
 import Blog from "./pages/Blog";
 import FAQ from "./pages/FAQ";
 import AboutUs from "./pages/AboutUs";
+import Shop from "./pages/Shop";
 
 const Layout = () => {
   return (
@@ -35,6 +36,7 @@ const router = createBrowserRouter([
       { path: "/blog", element: <Blog /> }, 
       { path: "/faq", element: <FAQ /> }, 
       { path: "/about-us", element: <AboutUs /> }, 
+      { path: "/shop-now", element: <Shop /> }, 
       { path: "/admin", element: <Admin /> },
     ],
   },
