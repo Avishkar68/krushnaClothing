@@ -13,12 +13,12 @@ import AboutUs from "./pages/AboutUs";
 
 const Layout = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#F5F5F5]">
       <Navbar />
       <div className="flex justify-center mt-6">
       <Outlet />
       </div>
-      {/* <Footer /> */}
+      <Footer />
     </div>
   );
 };

@@ -5,14 +5,14 @@ export default function Navbar() {
     <nav className="w-full px-6 py-4 flex items-center justify-between font-mainfont font-medium ">
 
       <div className="flex items-center">
-        <h1 className="text-2xl font-semibold tracking-widest select-none cursor-pointer">
-          <a href="/"><span className="font-light">Raw</span>Aura</a>
+        <h1 className="text-2xl  font-semibold tracking-widest select-none cursor-pointer">
+          <a href="/" className="tracking-[-1px]">RAWAURA</a>
         </h1>
       </div>
 
       <div className="flex justify-between ml-40 border border-[#2727272f] px-4 py-2 rounded-4xl cursor-pointer">
-        <div>
-          <input placeholder="search here..." className="outline-none border-none " />
+        <div className="">
+          <input placeholder="search here..." className="w-[360px] outline-none border-none " />
         </div>
         <ChevronRight className="text-[#bebebecc]" />
       </div>
@@ -25,14 +25,14 @@ export default function Navbar() {
         <a href="/faq" className="hover:text-black transition cursor-pointer">FAQs</a>
 
         <div className="flex items-center gap-5">
-      
+
           <button className="hover:text-black transition cursor-pointer">
             <ShoppingCart size={22} />
           </button>
           <abbr title="My orders" >
-          <button className="hover:text-black transition cursor-pointer">
-            <User size={22} />
-          </button>
+            <button className="hover:text-black transition cursor-pointer">
+              <User size={22} />
+            </button>
           </abbr>
         </div>
       </div>
