@@ -27,28 +27,45 @@ export async function updateOrderStatus(req, res) {
 export async function addProduct(req, res) {
   try {
     const { name, price, category, sizes, description, stock } = req.body;
-    if (!name || !price || !category || !sizes)
-      return res.status(400).json({ message: "Required fields missing" });
 
-    let images = [];
-    for (const file of req.files) {
-      const upload = await new Promise((resolve, reject) => {
-        cloudinary.uploader.upload_stream(
+    if (!name || !price || !category) {
+      return res.status(400).json({ message: "Required fields missing" });
+    }
+
+    const parsedSizes = Array.isArray(sizes)
+      ? sizes
+      : typeof sizes === "string" && sizes.length > 0
+      ? sizes.split(",").map(s => s.trim()).filter(Boolean)
+      : [];
+
+    if (parsedSizes.length === 0) {
+      return res.status(400).json({ message: "At least one size is required" });
+    }
+
+    const uploadBuffer = file =>
+      new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
           { folder: "clothing_products" },
           (err, result) => {
             if (err) reject(err);
             else resolve(result);
           }
-        ).end(file.buffer);
+        );
+
+        stream.end(file.buffer);
       });
-      images.push(upload.secure_url);
-    }
+
+    const files = Array.isArray(req.files) ? req.files : [];
+    const uploadedImages = await Promise.all(
+      files.map(file => uploadBuffer(file))
+    );
+    const images = uploadedImages.map(img => img.secure_url);
 
     const product = new Product({
       name,
       price,
       category,
-      sizes: sizes.split(","),
+      sizes: parsedSizes,
       description,
       stock,
       images,
@@ -56,9 +73,10 @@ export async function addProduct(req, res) {
 
     await product.save();
     res.status(201).json({ message: "Product added successfully", product });
-
   } catch (err) {
-    res.status(500).json({ message: "Server Error", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Server Error", error: err.message || String(err) });
   }
 }
 
