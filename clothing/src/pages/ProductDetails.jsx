@@ -1,184 +1,272 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Star, Heart, ArrowRight, ArrowLeft, Check } from 'lucide-react';
-
-// Importing assets to reuse (you can replace these with product specific images later)
-import hero1 from "../assets/hero1.avif";
-import hero1_2 from "../assets/hero1_2.webp";
-import hero1_3 from "../assets/hero1_3.jpg";
+import axios from "axios";
+import { Star, Heart, ArrowRight, ArrowLeft, X } from 'lucide-react';
 
 const ProductDetails = () => {
   const { id } = useParams();
-  const [selectedColor, setSelectedColor] = useState('greenish');
-  const [selectedSize, setSelectedSize] = useState('L');
 
-  // Mock data to match the screenshot vibes
-  const product = {
-    title: "Nike Forward Hoodie",
-    price: "€ 1,099",
-    rating: 4.9,
-    reviews: 41,
-    description: "Goddamn!, this hoodie makes me feel soooooo much comfortable and genuinely warm af, i love this hoodie, make sure you buy it guys, love it!.",
-    colors: [
-      { name: 'black', class: 'bg-black' },
-      { name: 'white', class: 'bg-white border border-gray-200' },
-      { name: 'greenish', class: 'bg-[#AECEB0]' }, // Matches the screenshot green
-      { name: 'grey', class: 'bg-gray-300' },
-      { name: 'logan', class: 'bg-[#5D5D78]' },
-    ],
-    sizes: ['S', 'M', 'L', 'XL', 'XXL', '3XL']
+  const [selectedSize, setSelectedSize] = useState("L");
+  const [showDialog, setShowDialog] = useState(false);
+
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const [orderSuccess, setOrderSuccess] = useState(false);
+
+  // Order form data
+  const [formData, setFormData] = useState({
+    mobile: "",
+    email: "",
+    name: "",
+    address: {
+      area: "",
+      landmark: "",
+      room: "",
+      building: "",
+      city: "",
+      district: "",
+      state: "",
+      country: "",
+    },
+  });
+
+  // FETCH PRODUCT
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const res = await axios.get(`http://localhost:8000/api/products/${id}`);
+        setProduct(res.data.product || res.data);
+      } catch (err) {
+        setError("Failed to load product");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
+
+  // HANDLE FORM INPUTS
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name.startsWith("address.")) {
+      const field = name.split(".")[1];
+      setFormData((prev) => ({
+        ...prev,
+        address: { ...prev.address, [field]: value }
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
+
+  // PLACE ORDER
+  const handleSubmit = async () => {
+    if (!product) return;
+
+    const orderData = {
+      ...formData,
+      paymentMethod: "Cash on Delivery",
+      items: [
+        {
+          productId: id,
+          name: product.name,
+          price: product.price,
+          size: selectedSize,
+          quantity: 1,
+          image: product.images?.[0] || ""
+        },
+      ],
+      totalAmount: product.price,
+    };
+
+    try {
+      const res = await axios.post("http://localhost:8000/api/orders/place", orderData);
+
+      console.log("ORDER PLACED:", res.data);
+      setOrderSuccess(true);
+
+      // Clear form
+      setFormData({
+        mobile: "",
+        email: "",
+        name: "",
+        address: {
+          area: "",
+          landmark: "",
+          room: "",
+          building: "",
+          city: "",
+          district: "",
+          state: "",
+          country: "",
+        },
+      });
+
+      setShowDialog(false);
+      alert("Order placed successfully!");
+
+    } catch (err) {
+      console.error("ORDER FAILED:", err);
+      alert("Failed to place order. Please try again.");
+    }
+  };
+
+  // LOADING UI
+  if (loading) {
+    return (
+      <div className="text-center py-20 text-xl font-semibold">
+        Loading...
+      </div>
+    );
+  }
+
+  // ERROR UI
+  if (error || !product) {
+    return (
+      <div className="text-center py-20 text-red-500 text-xl">
+        {error}
+      </div>
+    );
+  }
 
   return (
     <div className="w-[96%] mx-auto min-h-screen text-[#1C1C1C] font-mainfont pb-20">
       
-      {/* --- BREADCRUMB --- */}
+      {/* BREADCRUMB */}
       <div className="py-6 flex items-center gap-2 text-gray-500 text-sm font-medium">
-        <Link to="/" className="hover:text-black transition-colors"><ArrowLeft size={16} className="inline mr-1"/> Home</Link> 
+        <Link to="/" className="hover:text-black transition-colors">
+          <ArrowLeft size={16} className="inline mr-1"/> Home
+        </Link>
         <span className="text-gray-300">•</span>
         <span className="text-black">Product details</span>
       </div>
 
-      {/* --- MAIN GRID LAYOUT --- */}
+      {/* ---- MAIN PRODUCT PAGE ---- */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        
+
         {/* LEFT COLUMN */}
         <div className="flex flex-col gap-4">
-          
-          {/* Main Large Image */}
+
           <div className="relative w-full h-[500px] lg:h-[600px] rounded-2xl overflow-hidden bg-[#F0F0F0]">
-            <span className="absolute top-6 right-6 bg-white px-4 py-2 rounded-full text-sm font-bold shadow-sm z-10">
-              Hoodie
-            </span>
             <img 
-              src={hero1} 
-              alt="Main Product" 
+              src={product.images?.[0]} 
+              alt={product.name} 
               className="w-full h-full object-cover"
             />
           </div>
 
-          {/* Product Info Card (Bottom Left in screenshot) */}
           <div className="bg-white rounded-2xl p-8 flex flex-col gap-8 shadow-sm border border-gray-100">
-            
-            {/* Header */}
             <div className="flex justify-between items-start">
               <div>
-                <h1 className="text-4xl font-bold tracking-tight mb-2">{product.title}</h1>
+                <h1 className="text-4xl font-bold tracking-tight mb-2">{product.name}</h1>
                 <div className="flex items-center gap-2 font-medium">
                   <Star className="fill-yellow-400 text-yellow-400" size={20} />
-                  <span>{product.rating}</span>
-                  <span className="text-gray-400">({product.reviews}) New Reviews</span>
+                  <span>4.9</span>
+                  <span className="text-gray-400">(41) New Reviews</span>
                 </div>
               </div>
-              <button className="p-3 rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition-colors">
+              <button className="p-3 rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition">
                 <Heart className="fill-current" size={24} />
               </button>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-10">
-              {/* Color Selector */}
-              <div>
-                <h3 className="font-bold text-lg mb-4">Color</h3>
-                <div className="flex gap-3">
-                  {product.colors.map((color) => (
-                    <button
-                      key={color.name}
-                      onClick={() => setSelectedColor(color.name)}
-                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform hover:scale-110 ${color.class} ${selectedColor === color.name ? 'ring-2 ring-offset-2 ring-black' : ''}`}
-                    >
-                      {selectedColor === color.name && <Check size={16} className={color.name === 'white' ? 'text-black' : 'text-white'} />}
-                    </button>
-                  ))}
-                </div>
-                <div className="grid grid-cols-3 gap-2 mt-2 text-xs text-gray-500 font-medium">
-                   {product.colors.map(c => <span key={c.name} className="capitalize text-center">{c.name}</span>)}
-                </div>
-              </div>
-
-              {/* Size Selector */}
-              <div className="flex-1">
-                <h3 className="font-bold text-lg mb-4">Size</h3>
-                <div className="flex flex-wrap gap-3">
-                  {product.sizes.map((size) => (
-                    <button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={`w-14 h-12 rounded-xl flex items-center justify-center font-bold text-sm transition-all
-                        ${selectedSize === size 
-                          ? 'bg-[#1C1C1C] text-white shadow-lg scale-105' 
-                          : 'bg-white border border-gray-200 text-gray-600 hover:border-black'}`}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
+            <div>
+              <h3 className="font-bold text-lg mb-4">Size</h3>
+              <div className="flex flex-wrap gap-3">
+                {product.sizes?.map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setSelectedSize(size)}
+                    className={`w-14 h-12 rounded-xl flex items-center justify-center font-bold text-sm transition-all
+                      ${selectedSize === size 
+                        ? "bg-[#1C1C1C] text-white shadow-lg scale-105" 
+                        : "bg-white border border-gray-200 text-gray-600 hover:border-black"}`}
+                  >
+                    {size}
+                  </button>
+                ))}
               </div>
             </div>
+
           </div>
 
         </div>
 
         {/* RIGHT COLUMN */}
         <div className="flex flex-col gap-4">
-          
-          {/* Image Grid (Top Right in screenshot) */}
+
           <div className="grid grid-cols-2 gap-4 h-[500px] lg:h-[600px]">
-            {/* Top Left Small */}
             <div className="rounded-2xl overflow-hidden bg-[#F0F0F0]">
-              <img src={hero1_2} alt="Detail 1" className="w-full h-full object-cover" />
+              <img src={product.images?.[1] || product.images?.[0]} className="w-full h-full object-cover" />
             </div>
-            {/* Top Right Small */}
             <div className="rounded-2xl overflow-hidden bg-[#F0F0F0]">
-              <img src={hero1} alt="Detail 2" className="w-full h-full object-cover" />
+              <img src={product.images?.[2] || product.images?.[0]} className="w-full h-full object-cover" />
             </div>
-            {/* Bottom Wide Detail */}
             <div className="col-span-2 rounded-2xl overflow-hidden bg-[#F0F0F0]">
-              <img src={hero1_3} alt="Fabric Detail" className="w-full h-full object-cover scale-125" />
+              <img src={product.images?.[3] || product.images?.[0]} className="w-full h-full object-cover" />
             </div>
           </div>
 
-          {/* Price & Action Section (Bottom Right in screenshot) */}
-          <div className="flex flex-col gap-4">
-            
-            {/* Black Price Card */}
-            <div className="bg-[#1C1C1C] rounded-2xl p-6 md:p-8 flex justify-between items-center text-white shadow-xl">
-              <div className="text-4xl font-bold">{product.price}</div>
-              <button className="bg-white text-black px-8 py-4 rounded-full font-bold flex items-center gap-2 hover:bg-gray-100 transition-colors">
-                Buy Now <ArrowRight size={20} />
-              </button>
-            </div>
-
-            {/* Review Snippet Card */}
-            <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-bold text-lg">Reviews ({product.reviews})</h3>
-                <button className="text-sm font-bold underline">See more</button>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden shrink-0">
-                    <img src={hero1_2} alt="User" className="w-full h-full object-cover" />
-                </div>
-                <div>
-                   <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold text-sm">Alexander Stewart</span>
-                      <span className="text-xs text-gray-400">13/12/2024</span>
-                   </div>
-                   <div className="flex gap-1 mb-3">
-                      {[1,2,3,4,5].map(i => <Star key={i} size={14} className="fill-yellow-400 text-yellow-400" />)}
-                   </div>
-                   <p className="text-gray-600 text-sm leading-relaxed">
-                     "{product.description}"
-                   </p>
-                </div>
-              </div>
-            </div>
-
+          <div className="bg-[#1C1C1C] rounded-2xl p-6 md:p-8 flex justify-between items-center text-white shadow-xl">
+            <div className="text-4xl font-bold">₹ {product.price}</div>
+            <button 
+              onClick={() => setShowDialog(true)}
+              className="bg-white text-black px-8 py-4 rounded-full font-bold flex items-center gap-2 hover:bg-gray-100 transition"
+            >
+              Buy Now <ArrowRight size={20} />
+            </button>
           </div>
 
         </div>
-
       </div>
+
+      {/* ---- BUY NOW MODAL ---- */}
+      {showDialog && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="bg-white w-full max-w-xl rounded-2xl p-8 shadow-2xl border border-gray-200 max-h-[85vh] overflow-y-auto">
+
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-3xl font-bold text-gray-900">Complete Your Order</h2>
+              <button onClick={() => setShowDialog(false)} className="p-2 rounded-full hover:bg-gray-100 transition">
+                <X size={26} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              
+              <input name="name" onChange={handleChange} placeholder="Full Name" className="input" />
+              <input name="mobile" onChange={handleChange} placeholder="Mobile Number" className="input" />
+              <input name="email" onChange={handleChange} placeholder="Email" className="input" />
+
+              <h3 className="font-semibold mt-3 text-lg text-gray-800">Address</h3>
+
+              {["area","landmark","room","building","city","district","state","country"].map((field) => (
+                <input
+                  key={field}
+                  name={`address.${field}`}
+                  onChange={handleChange}
+                  placeholder={field[0].toUpperCase() + field.slice(1)}
+                  className="input"
+                />
+              ))}
+
+              <button 
+                onClick={handleSubmit}
+                className="bg-black text-white py-3 rounded-xl text-lg font-semibold mt-4 hover:bg-gray-900 transition"
+              >
+                Place Order
+              </button>
+
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
