@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import { Filter, ChevronDown, X, Heart, ShoppingBag } from "lucide-react";
 import hero1 from "../assets/hero1.avif"
 import hero1_2 from "../assets/hero1_2.webp"
 import hero1_3 from "../assets/hero1_3.jpg"
 
 const Shop = () => {
+    const navigate = useNavigate(); // Initialize hook
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
     const [hoveredProduct, setHoveredProduct] = useState(null);
 
@@ -80,6 +82,11 @@ const Shop = () => {
         categories: ["All Products", "Hoodies", "T-Shirts", "Pants", "Jackets", "Accessories"],
         sizes: ["XS", "S", "M", "L", "XL", "XXL"],
         prices: ["$0 - $50", "$50 - $100", "$100 - $200", "$200+"]
+    };
+
+    // Handler to navigate to details page
+    const handleProductClick = (id) => {
+        navigate(`/product/${id}`);
     };
 
     return (
@@ -165,6 +172,8 @@ const Shop = () => {
                                 className="group cursor-pointer flex flex-col gap-3"
                                 onMouseEnter={() => setHoveredProduct(product.id)}
                                 onMouseLeave={() => setHoveredProduct(null)}
+                                // Added onClick to the whole card for better UX, though button also works
+                                onClick={() => handleProductClick(product.id)}
                             >
                                 {/* Image Container */}
                                 <div className="relative w-full h-[400px] bg-[#E5E5E5] rounded-2xl overflow-hidden">
@@ -176,8 +185,11 @@ const Shop = () => {
                                         </span>
                                     )}
 
-                                    {/* Wishlist Button */}
-                                    <button className="absolute top-4 right-4 bg-white p-2 rounded-full shadow-sm z-10 hover:bg-red-50 hover:text-red-500 transition-colors">
+                                    {/* Wishlist Button (Stop propagation so it doesn't trigger navigation) */}
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); }}
+                                        className="absolute top-4 right-4 bg-white p-2 rounded-full shadow-sm z-10 hover:bg-red-50 hover:text-red-500 transition-colors"
+                                    >
                                         <Heart size={18} />
                                     </button>
 
@@ -191,15 +203,27 @@ const Shop = () => {
                                     {/* Quick Add Overlay (Desktop) */}
                                     <div className=' hidden md:flex'>
                                         <div className={`absolute bottom-4 left-4 right-4 transition-all duration-300 transform ${hoveredProduct === product.id ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
-                                            <button className="w-full cursor-pointer bg-[#1C1C1C] text-white py-3 rounded-xl flex justify-center items-center gap-2 font-medium shadow-lg hover:bg-black">
-                                                <ShoppingBag size={16} /> Add to Cart
+                                            <button 
+                                                onClick={(e) => {
+                                                    e.stopPropagation(); // Stop bubbling if you want specific 'add to cart' logic, OR remove this line to let it navigate
+                                                    handleProductClick(product.id);
+                                                }}
+                                                className="w-full cursor-pointer bg-[#1C1C1C] text-white py-3 rounded-xl flex justify-center items-center gap-2 font-medium shadow-lg hover:bg-black"
+                                            >
+                                                <ShoppingBag size={16} /> View Details
                                             </button>
                                         </div>
                                     </div>
                                     <div className='md:hidden'>
                                         <div className={`absolute bottom-4 left-4 right-4 transition-all duration-300 transform ${hoveredProduct === product.id ? 'translate-y-0 opacity-100' : 'translate-y-0 opacity-100'}`}>
-                                            <button className="w-full bg-[#1C1C1C] text-white py-3 rounded-xl flex justify-center items-center gap-2 font-medium shadow-lg hover:bg-black">
-                                                <ShoppingBag size={16} /> Add to Cart
+                                            <button 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleProductClick(product.id);
+                                                }}
+                                                className="w-full bg-[#1C1C1C] text-white py-3 rounded-xl flex justify-center items-center gap-2 font-medium shadow-lg hover:bg-black"
+                                            >
+                                                <ShoppingBag size={16} /> View Details
                                             </button>
                                         </div>
                                     </div>
