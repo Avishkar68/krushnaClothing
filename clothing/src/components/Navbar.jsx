@@ -194,7 +194,8 @@ export default function Navbar() {
   return (
     <>
       {/* ===================== NAVBAR ===================== */}
-      <nav className="relative w-full px-6 py-4 flex items-center justify-between font-mainfont font-medium z-40 ">
+      {/* Updated: sticky, bg-white/70, backdrop-blur-md, higher z-index */}
+      <nav className="sticky top-0 w-full px-6 py-4 flex items-center justify-between font-mainfont font-medium z-50 bg-white/70 backdrop-blur-md transition-all duration-300">
 
         {/* LOGO */}
         <div className="flex items-center z-50">
@@ -204,7 +205,7 @@ export default function Navbar() {
         </div>
 
         {/* DESKTOP SEARCH */}
-        <div className="hidden md:flex justify-between mx-auto border border-[#2727272f] px-4 py-2 rounded-4xl">
+        <div className="hidden md:flex justify-between mx-auto border border-[#2727272f] px-4 py-2 rounded-4xl bg-white/50 focus-within:bg-white transition-colors">
           <input 
             placeholder="search here..." 
             className="w-[360px] outline-none bg-transparent placeholder-gray-400" 
@@ -304,7 +305,7 @@ export default function Navbar() {
                 <span className="text-sm font-bold">Orders</span>
               </button>
            </div>
-<p className='mt-42 text-gray-400'>Fashion by RawAura</p>
+           <p className='mt-42 text-gray-400'>Fashion by RawAura</p>
 
         </div>
       )}

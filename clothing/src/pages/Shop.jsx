@@ -281,7 +281,7 @@ const Shop = () => {
                                             <div className={`absolute bottom-4 left-4 right-4 transition-all duration-300 transform ${hoveredProduct === product._id ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
                                                 <button 
                                                     onClick={(e) => { e.stopPropagation(); handleProductClick(product._id); }}
-                                                    className="w-full bg-[#1C1C1C] text-white py-3 rounded-xl flex justify-center items-center gap-2 font-medium shadow-lg hover:bg-black"
+                                                    className="w-full cursor-pointer bg-[#1C1C1C] text-white py-3 rounded-xl flex justify-center items-center gap-2 font-medium shadow-lg hover:bg-black"
                                                 >
                                                     <ShoppingBag size={16} /> View Details
                                                 </button>
