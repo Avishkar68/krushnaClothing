@@ -69,7 +69,7 @@ const Admin = () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/products");
+      const res = await axios.get("https://krushnaclothing.onrender.com/api/products");
       setProducts(res.data.products || res.data); 
     } catch (err) {
       console.error("Error fetching products", err);
@@ -78,7 +78,7 @@ const Admin = () => {
 
   const fetchOrders = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/admin/orders");
+      const res = await axios.get("https://krushnaclothing.onrender.com/api/admin/orders");
       setOrders(res.data);
     } catch (err) {
       console.error("Error fetching orders", err);
@@ -87,7 +87,7 @@ const Admin = () => {
 
   const handleStatusUpdate = async (orderId, newStatus) => {
     try {
-      await axios.patch(`http://localhost:8000/api/admin/order/${orderId}`, {
+      await axios.patch(`https://krushnaclothing.onrender.com/api/admin/order/${orderId}`, {
         status: newStatus
       });
       // Refresh orders to see change
@@ -104,7 +104,7 @@ const Admin = () => {
     if (!editProduct) return;
 
     try {
-      await axios.patch(`http://localhost:8000/api/admin/product/${editProduct._id}`, {
+      await axios.patch(`https://krushnaclothing.onrender.com/api/admin/product/${editProduct._id}`, {
         price: Number(editProduct.price),
         stock: Number(editProduct.stock)
       });
@@ -151,7 +151,7 @@ const Admin = () => {
         productData.append("images", file);
       });
 
-      await axios.post("http://localhost:8000/api/admin/product", productData, {
+      await axios.post("https://krushnaclothing.onrender.com/api/admin/product", productData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

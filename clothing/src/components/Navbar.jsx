@@ -50,7 +50,7 @@ export default function Navbar() {
       setLoadingOrders(true);
       setOrderError("");
 
-      const res = await axios.get(`http://localhost:8000/api/orders/${mobileInput}`);
+      const res = await axios.get(`https://krushnaclothing.onrender.com/api/orders/${mobileInput}`);
 
       if (!res.data || res.data.length === 0) {
         setOrderError("No orders found for this mobile number.");
@@ -79,7 +79,7 @@ export default function Navbar() {
       setLoadingCart(true);
       setCartError("");
 
-      const res = await axios.get(`http://localhost:8000/api/cart/${cartMobileInput}`);
+      const res = await axios.get(`https://krushnaclothing.onrender.com/api/cart/${cartMobileInput}`);
       const cartItems = res.data.items || res.data; 
 
       if (!cartItems || cartItems.length === 0) {
@@ -106,7 +106,7 @@ export default function Navbar() {
     }
 
     try {
-      await axios.delete("http://localhost:8000/api/cart/remove", {
+      await axios.delete("https://krushnaclothing.onrender.com/api/cart/remove", {
         data: {
           mobile: cartMobileInput,
           productId: productId
@@ -179,7 +179,7 @@ export default function Navbar() {
     };
 
     try {
-      const res = await axios.post("http://localhost:8000/api/orders/place", orderData);
+      const res = await axios.post("https://krushnaclothing.onrender.com/api/orders/place", orderData);
       console.log("ORDER PLACED:", res.data);
       alert("Order placed successfully!");
       setIsCheckoutOpen(false);
@@ -253,7 +253,7 @@ export default function Navbar() {
           
           <button 
             onClick={() => setIsSearchOpen(false)} 
-            className="absolute top-6 right-6 p-2 bg-gray-100 rounded-full hover:bg-black hover:text-white transition-all shadow-sm"
+            className="absolute cursor-pointer top-6 right-6 p-2 bg-gray-100 rounded-full hover:bg-black hover:text-white transition-all shadow-sm"
           >
             <X size={24} />
           </button>
@@ -318,7 +318,7 @@ export default function Navbar() {
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold flex items-center gap-2"><Package className="text-black" /> My Orders</h2>
-              <button onClick={() => { setIsProfileOpen(false); setUserOrders(null); setMobileInput(""); setOrderError(""); }} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition"><X size={20} /></button>
+              <button onClick={() => { setIsProfileOpen(false); setUserOrders(null); setMobileInput(""); setOrderError(""); }} className="p-2 bg-gray-100 cursor-pointer rounded-full hover:bg-gray-200 transition"><X size={20} /></button>
             </div>
             {/* STEP 1: ENTER MOBILE NUMBER */}
             {!userOrders && (
@@ -327,7 +327,7 @@ export default function Navbar() {
                   <p className="text-gray-500 text-sm mb-4">Enter your registered mobile number to view your order history.</p>
                   <input type="text" placeholder="e.g. 9029656714" value={mobileInput} onChange={(e) => setMobileInput(e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-center text-lg font-medium outline-none focus:ring-2 focus:ring-black transition-all mb-4" autoFocus />
                   {orderError && <div className="mb-4 text-red-500 text-sm bg-red-50 py-2 px-3 rounded-lg">{orderError}</div>}
-                  <button onClick={fetchOrders} disabled={loadingOrders} className="w-full bg-black text-white py-3 rounded-xl font-semibold hover:bg-gray-900 transition active:scale-[0.98] disabled:opacity-70">{loadingOrders ? "Searching..." : "Find Orders"}</button>
+                  <button onClick={fetchOrders} disabled={loadingOrders} className="w-full bg-black text-white py-3 rounded-xl font-semibold hover:bg-gray-900 transition active:scale-[0.98] cursor-pointer disabled:opacity-70">{loadingOrders ? "Searching..." : "Find Orders"}</button>
                 </div>
               </div>
             )}
@@ -351,7 +351,7 @@ export default function Navbar() {
                     </div>
                   ))}
                 </div>
-                <button onClick={() => { setUserOrders(null); setOrderError(""); }} className="w-full py-3 text-gray-500 hover:text-black text-sm font-medium underline">Check another number</button>
+                <button onClick={() => { setUserOrders(null); setOrderError(""); }} className="w-full py-3 text-gray-500 hover:text-black text-sm cursor-pointer font-medium underline">Check another number</button>
               </div>
             )}
           </div>
@@ -365,7 +365,8 @@ export default function Navbar() {
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold flex items-center gap-2"><ShoppingBag className="text-black" /> Your Cart</h2>
-              <button onClick={() => { setIsCartOpen(false); setUserCart(null); setCartMobileInput(""); setCartError(""); }} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition"><X size={20} /></button>
+              <button onClick={() => { setIsCartOpen(false); setUserCart(null); setCartMobileInput(""); setCartError(""); }} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 cursor-pointer
+                transition"><X size={20} /></button>
             </div>
             {/* STEP 1: ENTER MOBILE NUMBER FOR CART */}
             {!userCart && (
@@ -426,9 +427,9 @@ export default function Navbar() {
                       <span className="text-gray-500">Total Items</span>
                       <span className="font-bold">{userCart.length}</span>
                    </div>
-                   <button onClick={handleProceedToCheckout} className="w-full bg-black text-white py-4 rounded-xl font-bold hover:bg-gray-900 transition shadow-lg flex justify-center items-center gap-2">Proceed to Checkout <ChevronRight size={18}/></button>
+                   <button onClick={handleProceedToCheckout} className="w-full bg-black text-white py-4 rounded-xl font-bold hover:bg-gray-900 transition shadow-lg flex justify-center cursor-pointer items-center gap-2">Proceed to Checkout <ChevronRight size={18}/></button>
                 </div>
-                <button onClick={() => { setUserCart(null); setCartError(""); }} className="w-full py-2 text-gray-400 hover:text-gray-600 text-xs text-center">Change Number</button>
+                <button onClick={() => { setUserCart(null); setCartError(""); }} className="w-full py-2 text-gray-400 hover:text-gray-600 text-xs text-center cursor-pointer">Change Number</button>
               </div>
             )}
           </div>
@@ -445,7 +446,7 @@ export default function Navbar() {
                 <h2 className="text-3xl font-bold text-gray-900">Checkout</h2>
                 <p className="text-gray-500 text-sm mt-1">Review your items and complete purchase</p>
               </div>
-              <button onClick={() => setIsCheckoutOpen(false)} className="p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-black transition-colors"><X size={28} /></button>
+              <button onClick={() => setIsCheckoutOpen(false)} className="p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-black cursor-pointer transition-colors"><X size={28} /></button>
             </div>
             <div className="space-y-8">
               {/* SECTION 1: ITEMS REVIEW */}
@@ -500,7 +501,7 @@ export default function Navbar() {
                   ))}
                 </div>
               </div>
-              <button onClick={handlePlaceOrder} className="w-full bg-black text-white py-4 rounded-xl text-lg font-bold mt-4 hover:bg-gray-900 hover:scale-[1.01] active:scale-[0.99] transition-all shadow-xl flex justify-center items-center gap-2">Confirm Order <CheckCircle size={20} /></button>
+              <button onClick={handlePlaceOrder} className="w-full bg-black text-white py-4 rounded-xl text-lg font-bold mt-4 hover:bg-gray-900 hover:scale-[1.01] active:scale-[0.99] transition-all shadow-xl flex justify-center cursor-pointer items-center gap-2">Confirm Order <CheckCircle size={20} /></button>
             </div>
           </div>
         </div>

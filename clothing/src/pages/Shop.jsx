@@ -32,7 +32,7 @@ const Shop = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const res = await axios.get("http://localhost:8000/api/products");
+                const res = await axios.get("https://krushnaclothing.onrender.com/api/products");
                 const data = res.data.products || res.data || [];
                 setAllProducts(data);
                 setFilteredProducts(data); // Initially, show all
@@ -166,7 +166,7 @@ const Shop = () => {
                                 <button 
                                     key={idx} 
                                     onClick={() => handleSizeClick(size)}
-                                    className={`border rounded-lg py-2 text-sm transition-all
+                                    className={`border cursor-pointer rounded-lg py-2 text-sm transition-all
                                         ${selectedSize === size 
                                             ? 'bg-black text-white border-black' 
                                             : 'border-gray-200 hover:border-black text-gray-600'

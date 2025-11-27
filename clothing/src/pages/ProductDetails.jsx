@@ -11,6 +11,7 @@ const ProductDetails = () => {
   // Dialog states
   const [showBuyNowDialog, setShowBuyNowDialog] = useState(false);
   const [showCartDialog, setShowCartDialog] = useState(false); // New dialog for Cart Mobile input
+  const [successModal, setSuccessModal] = useState({ show: false, message: "" }); // NEW: Success Modal
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -41,7 +42,7 @@ const ProductDetails = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await axios.get(`http://localhost:8000/api/products/${id}`);
+        const res = await axios.get(`https://krushnaclothing.onrender.com/api/products/${id}`);
         setProduct(res.data.product || res.data);
       } catch (err) {
         setError("Failed to load product");
@@ -97,11 +98,14 @@ const ProductDetails = () => {
     };
 
     try {
-      const res = await axios.post("http://localhost:8000/api/cart/add", cartPayload);
+      const res = await axios.post("https://krushnaclothing.onrender.com/api/cart/add", cartPayload);
       console.log("ADDED TO CART:", res.data);
-      alert("Product added to cart successfully!");
-      setShowCartDialog(false); // Close dialog on success
-      setCartMobile(""); // Reset mobile input
+      
+      // Close Input Dialog and Show Success
+      setShowCartDialog(false); 
+      setCartMobile(""); 
+      setSuccessModal({ show: true, message: "Product added to cart successfully!" });
+
     } catch (err) {
       console.error("ADD TO CART FAILED:", err);
       alert("Failed to add to cart. Check console for details."); 
@@ -131,7 +135,7 @@ const ProductDetails = () => {
     };
 
     try {
-      const res = await axios.post("http://localhost:8000/api/orders/place", orderData);
+      const res = await axios.post("https://krushnaclothing.onrender.com/api/orders/place", orderData);
 
       console.log("ORDER PLACED:", res.data);
 
@@ -152,8 +156,9 @@ const ProductDetails = () => {
         },
       });
 
+      // Close Form and Show Success
       setShowBuyNowDialog(false);
-      alert("Order placed successfully!");
+      setSuccessModal({ show: true, message: "Order placed successfully!" });
 
     } catch (err) {
       console.error("ORDER FAILED:", err);
@@ -314,7 +319,7 @@ const ProductDetails = () => {
                  <button 
                     onClick={confirmAddToCart}
                     disabled={isAddingToCart}
-                    className="w-full bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors disabled:opacity-70 flex justify-center items-center gap-2"
+                    className="w-full cursor-pointer bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors disabled:opacity-70 flex justify-center items-center gap-2"
                  >
                     {isAddingToCart ? "Adding..." : "Confirm & Add"}
                  </button>
@@ -335,14 +340,26 @@ const ProductDetails = () => {
               </div>
               <button 
                 onClick={() => setShowBuyNowDialog(false)} 
-                className="p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-black transition-colors"
+                className="p-2 cursor-pointer rounded-full hover:bg-gray-100 text-gray-500 hover:text-black transition-colors"
               >
                 <X size={28} />
               </button>
             </div>
 
             <div className="space-y-6">
-              
+                 {/* Order Summary Snippet */}
+                 <div className="bg-gray-50 rounded-xl p-4 mt-6 flex justify-between items-center border border-gray-200">
+                <div className="flex items-center gap-3">
+                   <div className="h-12 w-12 rounded-lg bg-white border border-gray-200 overflow-hidden">
+                      <img src={product.images?.[0]} className="w-full h-full object-cover" alt="mini" />
+                   </div>
+                   <div>
+                      <p className="font-bold text-sm">{product.name}</p>
+                      <p className="text-xs text-gray-500">Size: {selectedSize} | Qty: 1</p>
+                   </div>
+                </div>
+                <div className="font-bold text-lg">₹ {product.price}</div>
+              </div>
               {/* Personal Details */}
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg text-gray-900 flex items-center gap-2">
@@ -391,29 +408,36 @@ const ProductDetails = () => {
                 </div>
               </div>
 
-              {/* Order Summary Snippet */}
-              <div className="bg-gray-50 rounded-xl p-4 mt-6 flex justify-between items-center border border-gray-200">
-                <div className="flex items-center gap-3">
-                   <div className="h-12 w-12 rounded-lg bg-white border border-gray-200 overflow-hidden">
-                      <img src={product.images?.[0]} className="w-full h-full object-cover" alt="mini" />
-                   </div>
-                   <div>
-                      <p className="font-bold text-sm">{product.name}</p>
-                      <p className="text-xs text-gray-500">Size: {selectedSize} | Qty: 1</p>
-                   </div>
-                </div>
-                <div className="font-bold text-lg">₹ {product.price}</div>
-              </div>
+           
 
               <button 
                 onClick={handleSubmit}
-                className="w-full bg-black text-white py-4 rounded-xl text-lg font-bold mt-4 hover:bg-gray-900 hover:scale-[1.01] active:scale-[0.99] transition-all shadow-xl flex justify-center items-center gap-2"
+                className="w-full bg-black cursor-pointer text-white py-4 rounded-xl text-lg font-bold mt-4 hover:bg-gray-900 hover:scale-[1.01] active:scale-[0.99] transition-all shadow-xl flex justify-center items-center gap-2"
               >
                 Confirm Order <CheckCircle size={20} />
               </button>
 
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* ---- 3. SUCCESS MODAL ---- */}
+      {successModal.show && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+          <div className="bg-white w-full max-w-sm rounded-3xl p-8 text-center shadow-2xl animate-in fade-in zoom-in duration-300">
+             <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle size={40} />
+             </div>
+             <h3 className="text-2xl font-bold mb-2 text-gray-900">Success!</h3>
+             <p className="text-gray-500 mb-8">{successModal.message}</p>
+             <button 
+                onClick={() => setSuccessModal({ show: false, message: "" })} 
+                className="w-full bg-black text-white py-4 rounded-xl font-bold text-lg hover:bg-gray-900 transition shadow-lg"
+             >
+                Okay, Got it
+             </button>
           </div>
         </div>
       )}
