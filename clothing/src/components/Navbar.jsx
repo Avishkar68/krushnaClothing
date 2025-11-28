@@ -246,10 +246,9 @@ export default function Navbar() {
 
         {/* DESKTOP NAV LINKS */}
         <div className="hidden md:flex items-center gap-7 text-gray-700">
-          <a href="/shop-now" className="hover:text-black transition">Shop</a>
           <a href="/about-us" className="hover:text-black transition">AboutUs</a>
           <a href="/blog" className="hover:text-black transition">Blogs</a>
-
+          <a href="/faq" className="hover:text-black transition">FAQ</a>
           <div className="flex items-center gap-5 pl-4 border-l border-gray-200">
             <button onClick={() => setIsCartOpen(true)} className="hover:text-black transition">
                <ShoppingCart size={22} className="cursor-pointer" />
