@@ -2,21 +2,21 @@ import Order from "../models/Order.js";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 
-// Load environment variables
 dotenv.config();
 
-// --- UPDATED EMAIL CONFIGURATION ---
-// We use port 465 (secure) instead of the simple "service: gmail" shorthand
-// This is much more reliable on cloud hosting platforms like Render.
+// --- UPDATED EMAIL CONFIGURATION (PORT 587) ---
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // true for 465, false for other ports
+  port: 587,             // CHANGE: Use 587 instead of 465
+  secure: false,         // CHANGE: Must be false for port 587 (it uses STARTTLS)
   auth: {
-    user: process.env.EMAIL_USER, // Read from Environment Variable
-    pass: process.env.EMAIL_PASS, // Read from Environment Variable
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
-  // These settings help prevent connection timeouts on cloud servers
+  tls: {
+    ciphers: "SSLv3",
+    rejectUnauthorized: false, // Helps avoid certificate errors in cloud environments
+  },
   connectionTimeout: 10000, 
   greetingTimeout: 10000,
 });
@@ -31,7 +31,6 @@ export async function placeOrder(req, res) {
     try {
         const { name, email, mobile, address, items, totalAmount } = req.body;
 
-        // Create HTML Table for Items
         const itemsHtml = items.map(item => `
             <tr>
                 <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.name}</td>
@@ -43,7 +42,6 @@ export async function placeOrder(req, res) {
 
         const mailOptions = {
             from: `"RawAura Fashion" <${process.env.EMAIL_USER}>`,
-            // Send to Owner AND Customer
             to: `${process.env.EMAIL_USER}, ${email}`, 
             subject: `Order Confirmation: ${name} - ₹${totalAmount}`,
             html: `
@@ -83,16 +81,13 @@ export async function placeOrder(req, res) {
             `,
         };
 
-        // Send the email
         await transporter.sendMail(mailOptions);
         console.log("Order confirmation emails sent successfully.");
 
     } catch (emailError) {
         console.error("Failed to send email:", emailError);
-        // We continue without throwing error so the user still gets their order confirmed
     }
 
-    // 3. Existing Logic: Return the saved order
     res.json(order);
 
   } catch (error) {
