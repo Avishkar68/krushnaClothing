@@ -1,36 +1,20 @@
 import Order from "../models/Order.js";
-import nodemailer from "nodemailer";
+import axios from "axios"; // Make sure to npm install axios in your backend folder
 import dotenv from "dotenv";
 
 dotenv.config();
 
-// --- UPDATED EMAIL CONFIGURATION (PORT 587) ---
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,             // CHANGE: Use 587 instead of 465
-  secure: false,         // CHANGE: Must be false for port 587 (it uses STARTTLS)
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  tls: {
-    ciphers: "SSLv3",
-    rejectUnauthorized: false, // Helps avoid certificate errors in cloud environments
-  },
-  connectionTimeout: 10000, 
-  greetingTimeout: 10000,
-});
-
 export async function placeOrder(req, res) {
   try {
-    // 1. Existing Logic: Create and Save Order
+    // 1. Save Order to Database
     const order = new Order(req.body);
     await order.save();
 
-    // 2. New Logic: Send Emails
+    // 2. Send Email via Brevo API (HTTP Request - Works on Render Free Tier)
     try {
         const { name, email, mobile, address, items, totalAmount } = req.body;
 
+        // Create HTML Table for Items
         const itemsHtml = items.map(item => `
             <tr>
                 <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.name}</td>
@@ -40,11 +24,18 @@ export async function placeOrder(req, res) {
             </tr>
         `).join("");
 
-        const mailOptions = {
-            from: `"RawAura Fashion" <${process.env.EMAIL_USER}>`,
-            to: `${process.env.EMAIL_USER}, ${email}`, 
+        // Brevo API Payload
+        const emailData = {
+            sender: { 
+                name: "RawAura Fashion", 
+                email: "rawaura0102@gmail.com" // MUST be verified in Brevo Dashboard
+            },
+            to: [
+                { email: email, name: name }, // Customer
+                { email: "rawaura0102@gmail.com", name: "RawAura Admin" } // Yourself
+            ],
             subject: `Order Confirmation: ${name} - ₹${totalAmount}`,
-            html: `
+            htmlContent: `
                 <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee;">
                     <h2 style="color: #000; text-align: center;">Order Received Successfully</h2>
                     <p>Hi <strong>${name}</strong>,</p>
@@ -75,19 +66,29 @@ export async function placeOrder(req, res) {
                     <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
                     <p style="text-align: center; font-size: 12px; color: #888;">
                         RawAura Fashion<br/>
-                        For any queries, contact us at ${process.env.EMAIL_USER}
+                        For any queries, contact us at rawaura0102@gmail.com
                     </p>
                 </div>
-            `,
+            `
         };
 
-        await transporter.sendMail(mailOptions);
-        console.log("Order confirmation emails sent successfully.");
+        // Send Request to Brevo API
+        await axios.post("https://api.brevo.com/v3/smtp/email", emailData, {
+            headers: {
+                "api-key": process.env.BREVO_API_KEY,
+                "Content-Type": "application/json",
+                "accept": "application/json"
+            }
+        });
+
+        console.log("Order confirmation emails sent successfully via Brevo.");
 
     } catch (emailError) {
-        console.error("Failed to send email:", emailError);
+        // Log the exact error from Brevo if it fails
+        console.error("Failed to send email:", emailError.response ? emailError.response.data : emailError.message);
     }
 
+    // 3. Return response
     res.json(order);
 
   } catch (error) {
