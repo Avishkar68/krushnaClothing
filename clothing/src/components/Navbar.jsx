@@ -1,38 +1,79 @@
 import React, { useState, useEffect } from 'react';
 import axios from "axios";
-import { useLocation, useSearchParams, useNavigate } from "react-router-dom"; // Import useNavigate
-import { Menu, X, ShoppingCart, User, Search, ChevronRight, Package, Truck, ShoppingBag, Trash2, CheckCircle } from "lucide-react";
+import { useLocation, useSearchParams, useNavigate } from "react-router-dom";
+import { Menu, X, ShoppingCart, User, Search, ChevronRight, Package, Truck, ShoppingBag, Trash2, CheckCircle, Info, XCircle } from "lucide-react";
+
+// --- Custom Notification Component (Toast for small messages) ---
+const NotificationToast = ({ message, type, onClose }) => {
+  useEffect(() => {
+    // Auto-close after 5 seconds
+    if (message) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message, onClose]);
+
+  if (!message) return null;
+
+  const baseClass = "fixed bottom-5 right-5 z-[150] p-4 rounded-xl shadow-2xl transition-all duration-500 flex items-start gap-3 w-full max-w-sm transform translate-y-0 opacity-100";
+  const successClass = "bg-green-100 text-green-800 border-green-300";
+  const errorClass = "bg-red-100 text-red-800 border-red-300";
+
+  return (
+    <div className={`${baseClass} ${type === 'success' ? successClass : errorClass}`}>
+      {type === 'success' ? <CheckCircle className="w-5 h-5 mt-0.5 text-green-600 shrink-0" /> : <XCircle className="w-5 h-5 mt-0.5 text-red-600 shrink-0" />}
+      <div className="flex-1">
+        <h4 className="font-bold capitalize">{type}</h4>
+        <p className="text-sm">{message}</p>
+      </div>
+      <button onClick={onClose} className="p-1 rounded-full hover:bg-white/50 transition shrink-0">
+        <X size={16} />
+      </button>
+    </div>
+  );
+};
+
+// --- Custom Success Modal Component (Centered for critical success) ---
+const SuccessModal = ({ show, message, onClose }) => {
+    if (!show) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[120] p-4 animate-in fade-in duration-300">
+            <div className="bg-white w-full max-w-sm rounded-3xl p-8 text-center shadow-2xl animate-in zoom-in-95 duration-300">
+                <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle size={40} />
+                </div>
+                <h3 className="text-2xl font-bold mb-2 text-gray-900">Success!</h3>
+                <p className="text-gray-500 mb-8">{message}</p>
+                <button 
+                    onClick={onClose} 
+                    className="w-full bg-black text-white py-4 rounded-xl font-bold text-lg hover:bg-gray-900 transition shadow-lg"
+                >
+                    Okay, Got it
+                </button>
+            </div>
+        </div>
+    );
+};
+
 
 export default function Navbar() {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate(); // Initialize Navigate Hook
+  const navigate = useNavigate();
 
   // Navigation States
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
+  // Notification States
+  const [notification, setNotification] = useState({ message: null, type: null });
+  const [successModal, setSuccessModal] = useState({ show: false, message: "" }); // NEW STATE
+
   // Logic to only show search on Shop page
   const showSearch = location.pathname === "/shop-now";
-
-  // Handle Search Input
-  const handleSearchChange = (e) => {
-    const term = e.target.value;
-
-    // Update URL params without reloading page
-    setSearchParams(prev => {
-      const newParams = new URLSearchParams(prev);
-      if (term) {
-        newParams.set('search', term);
-      } else {
-        newParams.delete('search');
-      }
-      return newParams;
-    });
-  };
-
-  // Get current search term from URL to keep input in sync
-  const currentSearchTerm = searchParams.get('search') || "";
 
   // Profile / Orders State
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -65,6 +106,30 @@ export default function Navbar() {
       country: "",
     },
   });
+
+  // Helper to display toast notification
+  const showNotification = (message, type) => {
+    setNotification({ message, type });
+  };
+
+  // Handle Search Input
+  const handleSearchChange = (e) => {
+    const term = e.target.value;
+
+    // Update URL params without reloading page
+    setSearchParams(prev => {
+      const newParams = new URLSearchParams(prev);
+      if (term) {
+        newParams.set('search', term);
+      } else {
+        newParams.delete('search');
+      }
+      return newParams;
+    });
+  };
+
+  // Get current search term from URL to keep input in sync
+  const currentSearchTerm = searchParams.get('search') || "";
 
   // --- FETCH ORDERS ---
   const fetchOrders = async () => {
@@ -147,17 +212,22 @@ export default function Navbar() {
           return currentId !== productId;
         });
       });
+      
+      showNotification("Item successfully removed from cart.", "success");
 
     } catch (err) {
       console.error("Failed to remove item:", err);
-      alert("Failed to remove item. Please try again.");
+      showNotification("Failed to remove item. Please try again.", "error");
     }
   };
 
   // --- CHECKOUT LOGIC ---
 
   const handleProceedToCheckout = () => {
-    if (!userCart || userCart.length === 0) return;
+    if (!userCart || userCart.length === 0) {
+      showNotification("Your cart is empty! Please add items before checking out.", "error");
+      return;
+    }
     setCheckoutItems(userCart);
     setIsCartOpen(false);
     setIsCheckoutOpen(true);
@@ -182,8 +252,18 @@ export default function Navbar() {
 
   const handlePlaceOrder = async () => {
     if (checkoutItems.length === 0) {
-      alert("Your cart is empty!");
+      showNotification("Your cart is empty!", "error");
       return;
+    }
+    
+    // Simple form validation check (Can be expanded)
+    if (!checkoutFormData.name || !checkoutFormData.email || !cartMobileInput) {
+        showNotification("Please fill out all required personal and contact fields.", "error");
+        return;
+    }
+    if (!checkoutFormData.address.city || !checkoutFormData.address.area) {
+        showNotification("Please fill out the critical address fields (Area and City).", "error");
+        return;
     }
 
     const totalAmount = checkoutItems.reduce((acc, item) => acc + (Number(item.price) * item.quantity), 0);
@@ -208,18 +288,39 @@ export default function Navbar() {
     try {
       const res = await axios.post("https://krushnaclothing.onrender.com/api/orders/place", orderData);
       console.log("ORDER PLACED:", res.data);
-      alert("Order placed successfully! Check your email for the quotation.");
+      
+      // Use the large Success Modal for Order Confirmation
+      setSuccessModal({ 
+        show: true, 
+        message: "Your order has been successfully placed! An order confirmation email with quotation details has been sent to your inbox." 
+      });
+      
       setIsCheckoutOpen(false);
       setCheckoutItems([]);
       setUserCart(null);
     } catch (err) {
       console.error("ORDER FAILED:", err);
-      alert("Failed to place order. Please try again.");
+      showNotification("Failed to place order. Please try again. Check server logs.", "error");
     }
   };
 
   return (
     <>
+      {/* ===================== NOTIFICATION TOAST ===================== */}
+      <NotificationToast 
+        message={notification.message} 
+        type={notification.type} 
+        onClose={() => setNotification({ message: null, type: null })} 
+      />
+
+      {/* ===================== SUCCESS MODAL (Order Confirmation) ===================== */}
+      <SuccessModal
+        show={successModal.show}
+        message={successModal.message}
+        onClose={() => setSuccessModal({ show: false, message: "" })}
+      />
+
+
       {/* ===================== NAVBAR ===================== */}
       <nav className="sticky top-0 w-full px-6 py-4 flex items-center justify-between font-mainfont font-medium z-50 bg-white/70 backdrop-blur-md transition-all duration-300">
 
@@ -276,6 +377,7 @@ export default function Navbar() {
 
           <button onClick={() => setIsCartOpen(true)} className="relative">
             <ShoppingCart size={22} />
+            {/* The small red dot representing items in cart. This would ideally be dynamic based on cart state */}
             <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
           <button onClick={() => setIsMenuOpen(true)}><Menu size={26} /></button>
