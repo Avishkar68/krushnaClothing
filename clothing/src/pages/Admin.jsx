@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 
 const Admin = () => {
+    const [filter, setFilter] = useState("All");
+
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true); // desktop collapse
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false); // mobile slide-over
@@ -30,6 +32,7 @@ const Admin = () => {
   // --- MODAL STATES ---
   const [editProduct, setEditProduct] = useState(null);
   const [successModal, setSuccessModal] = useState({ show: false, message: "" });
+
 
   // --- FORM STATES (Add Product) ---
   const [formData, setFormData] = useState({
@@ -288,6 +291,8 @@ const Admin = () => {
 
   // 3. ADD PRODUCT TAB
   const renderAddProduct = () => (
+    
+
     <div className="max-w-4xl mx-auto animate-in fade-in duration-300">
       <h2 className="text-2xl md:text-3xl font-bold mb-6">Add New Product</h2>
 
@@ -378,36 +383,87 @@ const Admin = () => {
   );
 
   // 4. ORDERS TAB
-  const renderOrders = () => (
+const renderOrders = () => {
+
+  const filteredOrders =
+    filter === "All"
+      ? orders
+      : orders.filter((o) => o.status.toLowerCase() === filter.toLowerCase());
+
+  return (
     <div className="space-y-6 animate-in fade-in duration-300">
       <h2 className="text-2xl md:text-3xl font-bold">Order Management</h2>
 
+      {/* FILTER BUTTONS */}
+      <div className="flex flex-wrap gap-3">
+        {["All", "Pending", "Shipped", "Delivered", "Cancelled"].map((status) => (
+          <button
+            key={status}
+            onClick={() => setFilter(status)}
+            className={`
+              px-4 py-2 rounded-xl text-sm font-semibold transition 
+              border
+              ${
+                filter === status
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-gray-700 border-gray-200 hover:bg-gray-100"
+              }
+            `}
+          >
+            {status}
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 gap-4">
-        {orders.length === 0 && <div className="text-gray-500 p-4">No orders found.</div>}
-        {orders.map((order) => (
-          <div key={order._id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 md:p-6 hover:shadow-md transition">
+        {filteredOrders.length === 0 && (
+          <div className="text-gray-500 p-4">No orders found.</div>
+        )}
+
+        {filteredOrders.map((order) => (
+          <div
+            key={order._id}
+            className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 md:p-6 hover:shadow-md transition"
+          >
             {/* Order Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 border-b border-gray-100 pb-4">
               <div className="w-full md:w-auto">
                 <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-bold">Order #{String(order._id).slice(-6).toUpperCase()}</h3>
-                  <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider 
-                    ${order.status === "Delivered" ? "bg-green-100 text-green-700" :
-                      order.status === "Cancelled" ? "bg-red-100 text-red-700" :
-                        "bg-yellow-100 text-yellow-700"}`}>
+                  <h3 className="text-lg font-bold">
+                    Order #{String(order._id).slice(-6).toUpperCase()}
+                  </h3>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider 
+                      ${
+                        order.status === "Delivered"
+                          ? "bg-green-100 text-green-700"
+                          : order.status === "Cancelled"
+                          ? "bg-red-100 text-red-700"
+                          : order.status === "Shipped"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
+                  >
                     {order.status}
                   </span>
                 </div>
-                <p className="text-gray-500 text-sm mt-1">{new Date(order.createdAt).toLocaleString()} • {order.items?.length || 0} Items</p>
+                <p className="text-gray-500 text-sm mt-1">
+                  {new Date(order.createdAt).toLocaleString()} •{" "}
+                  {order.items?.length || 0} Items
+                </p>
               </div>
 
               {/* Status Updater */}
               <div className="mt-3 md:mt-0 flex items-center gap-3">
-                <label className="text-sm font-medium text-gray-600">Update Status:</label>
+                <label className="text-sm font-medium text-gray-600">
+                  Update Status:
+                </label>
                 <select
                   className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black"
                   value={order.status}
-                  onChange={(e) => handleStatusUpdate(order._id, e.target.value)}
+                  onChange={(e) =>
+                    handleStatusUpdate(order._id, e.target.value)
+                  }
                 >
                   <option value="Pending">Pending</option>
                   <option value="Shipped">Shipped</option>
@@ -420,13 +476,17 @@ const Admin = () => {
             {/* Customer Details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Customer Details</h4>
+                <h4 className="font-semibold text-gray-900 mb-2">
+                  Customer Details
+                </h4>
                 <p className="text-sm text-gray-600">{order.name}</p>
                 <p className="text-sm text-gray-600">{order.email}</p>
                 <p className="text-sm text-gray-600">{order.mobile}</p>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Shipping Address</h4>
+                <h4 className="font-semibold text-gray-900 mb-2">
+                  Shipping Address
+                </h4>
                 <p className="text-sm text-gray-600">
                   {order.address?.room}, {order.address?.building} <br />
                   {order.address?.area}, {order.address?.landmark} <br />
@@ -435,37 +495,56 @@ const Admin = () => {
               </div>
             </div>
 
-            {/* Order Items (Images) */}
+            {/* Order Items */}
             <div className="mb-4">
-              <h4 className="font-semibold text-gray-900 mb-3">Ordered Items</h4>
+              <h4 className="font-semibold text-gray-900 mb-3">
+                Ordered Items
+              </h4>
               <div className="flex flex-wrap gap-3">
                 {order.items?.map((item, idx) => (
-                  <div key={idx} className="flex gap-3 items-center bg-gray-50 p-3 rounded-xl border border-gray-100 min-w-[200px]">
+                  <div
+                    key={idx}
+                    className="flex gap-3 items-center bg-gray-50 p-3 rounded-xl border border-gray-100 min-w-[200px]"
+                  >
                     <div className="w-16 h-16 bg-white rounded-lg overflow-hidden border border-gray-200 shrink-0">
                       {item.image ? (
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
-                        <div className="flex items-center justify-center w-full h-full text-gray-300"><Package size={16} /></div>
+                        <div className="flex items-center justify-center w-full h-full text-gray-300">
+                          <Package size={16} />
+                        </div>
                       )}
                     </div>
                     <div className="min-w-0">
                       <p className="font-bold text-sm truncate">{item.name}</p>
-                      <p className="text-xs text-gray-500">Size: {item.size} • Qty: {item.quantity}</p>
-                      <p className="text-sm font-semibold mt-1">₹{item.price}</p>
+                      <p className="text-xs text-gray-500">
+                        Size: {item.size} • Qty: {item.quantity}
+                      </p>
+                      <p className="text-sm font-semibold mt-1">
+                        ₹{item.price}
+                      </p>
                     </div>
                   </div>
-                )) || <div className="text-gray-500">No items</div>}
+                ))}
               </div>
             </div>
 
             <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end">
-              <p className="text-lg md:text-xl font-bold">Total: ₹{order.totalAmount}</p>
+              <p className="text-lg md:text-xl font-bold">
+                Total: ₹{order.totalAmount}
+              </p>
             </div>
           </div>
         ))}
       </div>
     </div>
   );
+};
+
 
   // ================= MAIN RENDER =================
   return (
