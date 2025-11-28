@@ -1,16 +1,20 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom'; // Import useSearchParams
 import axios from "axios";
 import { Filter, ChevronDown, X, Heart, ShoppingBag, Check } from "lucide-react";
 
 const Shop = () => {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams(); // Get URL params
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
     const [hoveredProduct, setHoveredProduct] = useState(null);
 
+    // Get search term from URL
+    const searchTerm = searchParams.get("search");
+
     // --- DATA STATE ---
-    const [allProducts, setAllProducts] = useState([]); // Store all fetched data
-    const [filteredProducts, setFilteredProducts] = useState([]); // Store filtered results
+    const [allProducts, setAllProducts] = useState([]); 
+    const [filteredProducts, setFilteredProducts] = useState([]); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -19,7 +23,6 @@ const Shop = () => {
     const [selectedSize, setSelectedSize] = useState(null);
     const [selectedPrice, setSelectedPrice] = useState(null);
 
-    // --- FILTER OPTIONS (Matched to Mongoose Schema) ---
     const filters = {
         categories: ["All", "hoodies", "oversized tshirts", "unisex"],
         sizes: ["M", "L", "XL"],
@@ -35,7 +38,7 @@ const Shop = () => {
                 const res = await axios.get("https://krushnaclothing.onrender.com/api/products");
                 const data = res.data.products || res.data || [];
                 setAllProducts(data);
-                setFilteredProducts(data); // Initially, show all
+                setFilteredProducts(data);
             } catch (err) {
                 setError("Failed to load products");
             } finally {
@@ -46,26 +49,34 @@ const Shop = () => {
     }, []);
 
     // ==========================
-    // 2. FILTERING LOGIC
+    // 2. FILTERING LOGIC (Includes Search)
     // ==========================
     useEffect(() => {
         let result = allProducts;
 
-        // A. Category Filter
+        // A. Search Filter (Added this!)
+        if (searchTerm) {
+            result = result.filter(product => 
+                product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                product.category?.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+
+        // B. Category Filter
         if (selectedCategory !== "All") {
             result = result.filter(product => 
                 product.category?.toLowerCase() === selectedCategory.toLowerCase()
             );
         }
 
-        // B. Size Filter (Checks if product.sizes array includes the selected size)
+        // C. Size Filter
         if (selectedSize) {
             result = result.filter(product => 
                 product.sizes?.includes(selectedSize)
             );
         }
 
-        // C. Price Filter
+        // D. Price Filter
         if (selectedPrice) {
             const priceRange = parsePriceRange(selectedPrice);
             if (priceRange) {
@@ -80,12 +91,12 @@ const Shop = () => {
         }
 
         setFilteredProducts(result);
-    }, [selectedCategory, selectedSize, selectedPrice, allProducts]);
+    }, [selectedCategory, selectedSize, selectedPrice, allProducts, searchTerm]); // Added searchTerm to dependencies
 
-    // Helper to parse price strings like "$0 - $500" or "$2000+"
+    // Helper to parse price strings
     const parsePriceRange = (rangeStr) => {
         if (!rangeStr) return null;
-        const cleanStr = rangeStr.replace(/\$/g, '').replace(/ /g, ''); // Remove $ and spaces
+        const cleanStr = rangeStr.replace(/\$/g, '').replace(/ /g, ''); 
         
         if (cleanStr.includes('+')) {
             const min = parseInt(cleanStr.replace('+', ''));
@@ -103,12 +114,10 @@ const Shop = () => {
     const handleCategoryClick = (cat) => setSelectedCategory(cat);
     
     const handleSizeClick = (size) => {
-        // Toggle size (if clicking same size, unselect it)
         setSelectedSize(prev => prev === size ? null : size);
     };
 
     const handlePriceClick = (price) => {
-        // Toggle price
         setSelectedPrice(prev => prev === price ? null : price);
     };
 
@@ -116,6 +125,8 @@ const Shop = () => {
         setSelectedCategory("All");
         setSelectedSize(null);
         setSelectedPrice(null);
+        // Clear search param as well if you want "Clear All" to clear search
+        setSearchParams({});
     };
 
     const handleProductClick = (id) => {
@@ -129,18 +140,17 @@ const Shop = () => {
                 {/* --- SIDEBAR FILTERS (Desktop) --- */}
                 <aside className="hidden lg:block w-1/4 sticky top-10 h-fit space-y-8 pr-4">
                     
-                    {/* Header with Clear Button */}
                     <div className="flex justify-between items-center">
                         <h2 className="font-bold text-xl">Filters</h2>
-                        {(selectedCategory !== "All" || selectedSize || selectedPrice) && (
+                        {(selectedCategory !== "All" || selectedSize || selectedPrice || searchTerm) && (
                             <button onClick={handleClearFilters} className="text-xs text-red-500 underline cursor-pointer hover:text-red-700">
                                 Clear All
                             </button>
                         )}
                     </div>
 
-                    {/* Categories */}
-                    <div className="border-b border-gray-200 pb-6">
+                    {/* ... Existing Filter UI ... */}
+                     <div className="border-b border-gray-200 pb-6">
                         <h3 className="font-semibold text-lg mb-4 flex items-center justify-between">
                             Categories <ChevronDown size={16} />
                         </h3>
@@ -158,7 +168,6 @@ const Shop = () => {
                         </ul>
                     </div>
 
-                    {/* Size */}
                     <div className="border-b border-gray-200 pb-6">
                         <h3 className="font-semibold text-lg mb-4">Size</h3>
                         <div className="grid grid-cols-3 gap-2">
@@ -178,7 +187,6 @@ const Shop = () => {
                         </div>
                     </div>
 
-                    {/* Price Range */}
                     <div>
                         <h3 className="font-semibold text-lg mb-4">Price Range</h3>
                         <ul className="space-y-2 text-gray-500 text-sm">
@@ -201,10 +209,9 @@ const Shop = () => {
                 {/* --- MAIN CONTENT --- */}
                 <div className="w-full lg:w-3/4">
 
-                    {/* Toolbar */}
                     <div className="flex justify-between items-center mb-6 pt-6">
                         <span className="text-gray-500 text-sm">
-                            {loading ? "Loading..." : `${filteredProducts.length} Products Found`}
+                            {loading ? "Loading..." : `${filteredProducts.length} Products Found ${searchTerm ? `for "${searchTerm}"` : ''}`}
                         </span>
 
                         <div className="flex gap-4">
@@ -221,12 +228,10 @@ const Shop = () => {
                         </div>
                     </div>
 
-                    {/* Error Handler */}
                     {error && (
                         <div className="text-red-500 text-center py-10 text-lg">{error}</div>
                     )}
 
-                    {/* Loading Skeleton */}
                     {loading && (
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 animate-pulse">
                             {[1,2,3,4,5,6].map(i => (
@@ -235,7 +240,6 @@ const Shop = () => {
                         </div>
                     )}
 
-                    {/* Empty State */}
                     {!loading && filteredProducts.length === 0 && (
                         <div className="text-center py-20 text-gray-500">
                             No products match your selected filters. 
@@ -244,7 +248,6 @@ const Shop = () => {
                         </div>
                     )}
 
-                    {/* Product Grid */}
                     {!loading && filteredProducts.length > 0 && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-10">
                             {filteredProducts.map((product) => (
@@ -256,27 +259,22 @@ const Shop = () => {
                                     onClick={() => handleProductClick(product._id)}
                                 >
                                     <div className="relative w-full h-[400px] bg-[#E5E5E5] rounded-2xl overflow-hidden">
-
-                                        {/* Tag (Optional) */}
                                         {product.stock < 5 && (
                                             <span className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md z-10">
                                                 Low Stock
                                             </span>
                                         )}
-
                                         <button 
                                             onClick={(e) => { e.stopPropagation(); }}
                                             className="absolute top-4 right-4 bg-white p-2 rounded-full shadow-sm z-10 hover:bg-red-50 hover:text-red-500 transition-colors"
                                         >
                                             <Heart size={18} />
                                         </button>
-
                                         <img
                                             src={product.images?.[0] || "https://via.placeholder.com/400"} 
                                             alt={product.name}
                                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                         />
-
                                         <div className="hidden md:flex">
                                             <div className={`absolute bottom-4 left-4 right-4 transition-all duration-300 transform ${hoveredProduct === product._id ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
                                                 <button 
@@ -288,7 +286,6 @@ const Shop = () => {
                                             </div>
                                         </div>
                                     </div>
-
                                     <div className="flex justify-between items-start px-1">
                                         <div>
                                             <h3 className="font-medium text-lg text-[#1C1C1C] line-clamp-1">{product.name}</h3>
@@ -301,8 +298,8 @@ const Shop = () => {
                         </div>
                     )}
 
-                    {/* Load More */}
-                    {!loading && filteredProducts.length > 9 && (
+                     {/* Load More */}
+                     {!loading && filteredProducts.length > 9 && (
                         <div className="flex justify-center mt-16">
                             <button className="border border-black text-black px-10 py-3 rounded-full hover:bg-black hover:text-white transition-all duration-300 uppercase tracking-widest text-xs font-bold">
                                 Load More
@@ -316,7 +313,6 @@ const Shop = () => {
             {isMobileFilterOpen && (
                 <div className="fixed inset-0 z-50 flex justify-end">
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsMobileFilterOpen(false)}></div>
-
                     <div className="relative w-4/5 max-w-sm h-full bg-white shadow-2xl p-6 flex flex-col animate-in slide-in-from-right duration-300 overflow-y-auto">
                         <div className="flex justify-between items-center mb-8">
                             <h2 className="text-2xl font-bold">Filters</h2>
@@ -326,7 +322,7 @@ const Shop = () => {
                         </div>
 
                         <div className="flex-1 space-y-8">
-                            <div>
+                             <div>
                                 <h3 className="font-semibold mb-3">Categories</h3>
                                 <div className="flex flex-wrap gap-2">
                                     {filters.categories.map((cat, i) => (
@@ -341,8 +337,9 @@ const Shop = () => {
                                     ))}
                                 </div>
                             </div>
-
-                            <div>
+                            
+                            {/* ... Mobile Sizes & Prices logic (same as before) ... */}
+                             <div>
                                 <h3 className="font-semibold mb-3">Size</h3>
                                 <div className="flex flex-wrap gap-2">
                                     {filters.sizes.map((size, i) => (
@@ -371,6 +368,7 @@ const Shop = () => {
                                     ))}
                                 </div>
                             </div>
+
                         </div>
 
                         <div className="pt-6 border-t border-gray-100 mt-6">
