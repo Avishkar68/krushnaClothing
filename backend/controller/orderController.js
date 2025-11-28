@@ -1,13 +1,24 @@
 import Order from "../models/Order.js";
 import nodemailer from "nodemailer";
+import dotenv from "dotenv";
 
-// --- EMAIL CONFIGURATION ---
+// Load environment variables
+dotenv.config();
+
+// --- UPDATED EMAIL CONFIGURATION ---
+// We use port 465 (secure) instead of the simple "service: gmail" shorthand
+// This is much more reliable on cloud hosting platforms like Render.
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true, // true for 465, false for other ports
   auth: {
-    user: "rawaura0102@gmail.com",
-    pass: "hynb nxfy dzjh nejl", 
+    user: process.env.EMAIL_USER, // Read from Environment Variable
+    pass: process.env.EMAIL_PASS, // Read from Environment Variable
   },
+  // These settings help prevent connection timeouts on cloud servers
+  connectionTimeout: 10000, 
+  greetingTimeout: 10000,
 });
 
 export async function placeOrder(req, res) {
@@ -17,7 +28,6 @@ export async function placeOrder(req, res) {
     await order.save();
 
     // 2. New Logic: Send Emails
-    // We wrap this in a try-catch so email failures don't crash the order process
     try {
         const { name, email, mobile, address, items, totalAmount } = req.body;
 
@@ -32,9 +42,9 @@ export async function placeOrder(req, res) {
         `).join("");
 
         const mailOptions = {
-            from: '"RawAura Fashion" <rawaura0102@gmail.com>',
+            from: `"RawAura Fashion" <${process.env.EMAIL_USER}>`,
             // Send to Owner AND Customer
-            to: `rawaura0102@gmail.com, ${email}`, 
+            to: `${process.env.EMAIL_USER}, ${email}`, 
             subject: `Order Confirmation: ${name} - ₹${totalAmount}`,
             html: `
                 <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee;">
@@ -67,7 +77,7 @@ export async function placeOrder(req, res) {
                     <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
                     <p style="text-align: center; font-size: 12px; color: #888;">
                         RawAura Fashion<br/>
-                        For any queries, contact us at rawaura0102@gmail.com
+                        For any queries, contact us at ${process.env.EMAIL_USER}
                     </p>
                 </div>
             `,
