@@ -158,7 +158,7 @@ const ProductDetails = () => {
 
       // Close Form and Show Success
       setShowBuyNowDialog(false);
-      setSuccessModal({ show: true, message: "Order placed successfully!" });
+      setSuccessModal({ show: true, message: "Order placed successfully! Check your email for details." });
 
     } catch (err) {
       console.error("ORDER FAILED:", err);

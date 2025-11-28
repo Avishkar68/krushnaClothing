@@ -208,7 +208,7 @@ export default function Navbar() {
     try {
       const res = await axios.post("https://krushnaclothing.onrender.com/api/orders/place", orderData);
       console.log("ORDER PLACED:", res.data);
-      alert("Order placed successfully!");
+      alert("Order placed successfully! Check your email for the quotation.");
       setIsCheckoutOpen(false);
       setCheckoutItems([]);
       setUserCart(null);
