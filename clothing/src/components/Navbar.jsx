@@ -1,23 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import axios from "axios";
-import { useLocation, useSearchParams } from "react-router-dom"; // Import Hooks
+import { useLocation, useSearchParams, useNavigate } from "react-router-dom"; // Import useNavigate
 import { Menu, X, ShoppingCart, User, Search, ChevronRight, Package, Truck, ShoppingBag, Trash2, CheckCircle } from "lucide-react";
 
 export default function Navbar() {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  
+  const navigate = useNavigate(); // Initialize Navigate Hook
+
   // Navigation States
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  
+
   // Logic to only show search on Shop page
   const showSearch = location.pathname === "/shop-now";
 
   // Handle Search Input
   const handleSearchChange = (e) => {
     const term = e.target.value;
-    
+
     // Update URL params without reloading page
     setSearchParams(prev => {
       const newParams = new URLSearchParams(prev);
@@ -106,7 +107,7 @@ export default function Navbar() {
       setCartError("");
 
       const res = await axios.get(`https://krushnaclothing.onrender.com/api/cart/${cartMobileInput}`);
-      const cartItems = res.data.items || res.data; 
+      const cartItems = res.data.items || res.data;
 
       if (!cartItems || cartItems.length === 0) {
         setCartError("Your cart is empty.");
@@ -128,7 +129,7 @@ export default function Navbar() {
   const handleRemoveFromCart = async (productId) => {
     if (!cartMobileInput || !productId) {
       console.error("Missing Mobile or Product ID for deletion");
-      return; 
+      return;
     }
 
     try {
@@ -140,13 +141,13 @@ export default function Navbar() {
       });
 
       setUserCart((prev) => {
-          if (!prev) return null;
-          return prev.filter(item => {
-              const currentId = item.productId || item._id;
-              return currentId !== productId;
-          });
+        if (!prev) return null;
+        return prev.filter(item => {
+          const currentId = item.productId || item._id;
+          return currentId !== productId;
+        });
       });
-      
+
     } catch (err) {
       console.error("Failed to remove item:", err);
       alert("Failed to remove item. Please try again.");
@@ -231,17 +232,17 @@ export default function Navbar() {
 
         {/* DESKTOP SEARCH - VISIBLE ONLY ON /shop-now */}
         <div className={`hidden md:flex justify-between mx-auto border border-[#2727272f] px-4 py-2 rounded-4xl bg-white/50 focus-within:bg-white transition-all duration-300 ${showSearch ? 'opacity-100 visible' : 'opacity-0 invisible w-0 p-0 border-none'}`}>
-           {showSearch && (
-             <>
-                <input 
-                  placeholder="search products..." 
-                  className="w-[360px] outline-none bg-transparent placeholder-gray-400" 
-                  value={currentSearchTerm}
-                  onChange={handleSearchChange}
-                />
-                <ChevronRight className="text-gray-400" />
-             </>
-           )}
+          {showSearch && (
+            <>
+              <input
+                placeholder="search products..."
+                className="w-[360px] outline-none bg-transparent placeholder-gray-400"
+                value={currentSearchTerm}
+                onChange={handleSearchChange}
+              />
+              <ChevronRight className="text-gray-400" />
+            </>
+          )}
         </div>
 
         {/* DESKTOP NAV LINKS */}
@@ -251,12 +252,12 @@ export default function Navbar() {
           <a href="/faq" className="hover:text-black transition">FAQ</a>
           <div className="flex items-center gap-5 pl-4 border-l border-gray-200">
             <button onClick={() => setIsCartOpen(true)} className="hover:text-black transition">
-               <ShoppingCart size={22} className="cursor-pointer" />
+              <ShoppingCart size={22} className="cursor-pointer" />
             </button>
 
             {/* PROFILE / ORDERS BUTTON */}
             <abbr title="My orders">
-              <button 
+              <button
                 onClick={() => setIsProfileOpen(true)}
                 className="hover:text-black"
               >
@@ -272,10 +273,10 @@ export default function Navbar() {
           {showSearch && (
             <button onClick={() => setIsSearchOpen(true)}><Search size={22} /></button>
           )}
-          
+
           <button onClick={() => setIsCartOpen(true)} className="relative">
-             <ShoppingCart size={22} />
-             <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            <ShoppingCart size={22} />
+            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
           <button onClick={() => setIsMenuOpen(true)}><Menu size={26} /></button>
         </div>
@@ -284,25 +285,32 @@ export default function Navbar() {
       {/* ===================== MOBILE SEARCH OVERLAY (Trendy Blur) ===================== */}
       {isSearchOpen && showSearch && (
         <div className="fixed inset-0 z-[60] bg-white/80 backdrop-blur-xl flex flex-col pt-32 px-6 animate-in fade-in duration-300">
-          
-          <button 
-            onClick={() => setIsSearchOpen(false)} 
+
+          <button
+            onClick={() => setIsSearchOpen(false)}
             className="absolute cursor-pointer top-6 right-6 p-2 bg-gray-100 rounded-full hover:bg-black hover:text-white transition-all shadow-sm"
           >
             <X size={24} />
           </button>
 
           <div className="w-full max-w-lg mx-auto">
-             <p className="text-sm font-bold text-gray-400 mb-2 uppercase tracking-widest">Search Rawaura</p>
-             <input 
-               type="text" 
-               placeholder="What are you looking for?" 
-               className="w-full bg-transparent text-3xl md:text-5xl font-bold placeholder-gray-300 border-b-2 border-gray-200 focus:border-black outline-none py-4 transition-colors"
-               autoFocus
-               value={currentSearchTerm}
-               onChange={handleSearchChange}
-             />
-             <p className="mt-4 text-gray-500 text-sm">Type 'Hoodie', 'T-Shirt', or 'Pants' to start...</p>
+            <p className="text-sm font-bold text-gray-400 mb-2 uppercase tracking-widest">Search Rawaura</p>
+            <input
+              type="text"
+              placeholder="What are you looking for?"
+              className="w-full bg-transparent text-3xl md:text-5xl font-bold placeholder-gray-300 border-b-2 border-gray-200 focus:border-black outline-none py-4 transition-colors"
+              autoFocus
+              value={currentSearchTerm}
+              onChange={handleSearchChange}
+              onKeyDown={(e) => {
+                // If user hits Enter on mobile keyboard, go to shop page with search term
+                if (e.key === "Enter") {
+                  setIsSearchOpen(false);
+                  navigate(`/shop-now?search=${currentSearchTerm}`);
+                }
+              }}
+            />
+            <p className="mt-4 text-gray-500 text-sm">Type 'Hoodie', 'T-Shirt', or 'Pants' to start...</p>
           </div>
         </div>
       )}
@@ -310,31 +318,49 @@ export default function Navbar() {
       {/* ===================== MOBILE MENU OVERLAY ===================== */}
       {isMenuOpen && (
         <div className="fixed inset-0 z-[60] bg-white/90 backdrop-blur-2xl flex flex-col justify-center items-center animate-in fade-in zoom-in-95 duration-300">
-           <button 
-              onClick={() => setIsMenuOpen(false)} 
-              className="absolute top-6 right-6 p-2 bg-gray-100 rounded-full hover:bg-black hover:text-white transition-all shadow-sm"
+          <button
+            onClick={() => setIsMenuOpen(false)}
+            className="absolute top-6 right-6 p-2 bg-gray-100 rounded-full hover:bg-black hover:text-white transition-all shadow-sm"
+          >
+            <X size={24} />
+          </button>
+          <div className="flex flex-col gap-8 text-center">
+            <a href="/" className="text-4xl font-semibold hover:text-gray-500 transition-colors">Home</a>
+            {/* <a href="/shop-now" className="text-4xl font-semibold hover:text-gray-500 transition-colors">Shop Now</a> */}
+            <a href="/about-us" className="text-4xl font-semibold hover:text-gray-500 transition-colors">About</a>
+            <a href="/blog" className="text-4xl font-semibold hover:text-gray-500 transition-colors">Blog</a>
+            <a href="/faq" className="text-4xl font-semibold hover:text-gray-500 transition-colors">FAQs</a>
+          </div>
+          {/* ... rest of mobile menu ... */}
+          <div className="mt-8 flex gap-6">
+
+            <button
+              onClick={() => { setIsMenuOpen(false); setIsCartOpen(true); }}
+              className="flex flex-col items-center gap-2 text-gray-600 hover:text-black transition-transform hover:scale-110"
             >
-              <X size={24}/>
-           </button>
-           <div className="flex flex-col gap-8 text-center">
-              <a href="/" className="text-4xl font-semibold hover:text-gray-500 transition-colors">Home</a>
-              <a href="/shop-now" className="text-4xl font-semibold hover:text-gray-500 transition-colors">Shop Now</a>
-              <a href="/about-us" className="text-4xl font-semibold hover:text-gray-500 transition-colors">About</a>
-              <a href="/blog" className="text-4xl font-semibold hover:text-gray-500 transition-colors">Blog</a>
-              <a href="/faq" className="text-4xl font-semibold hover:text-gray-500 transition-colors">FAQs</a>
-           </div>
-           {/* ... rest of mobile menu ... */}
+              <div className="p-4 bg-white rounded-full shadow-md"><ShoppingBag size={24} /></div>
+              <span className="text-sm font-bold">Cart</span>
+            </button>
+
+
+            <button
+              onClick={() => { setIsMenuOpen(false); setIsProfileOpen(true); }}
+              className="flex flex-col items-center gap-2 text-gray-600 hover:text-black transition-transform hover:scale-110"
+            >
+              <div className="p-4 bg-white rounded-full shadow-md"><User size={24} /></div>
+              <span className="text-sm font-bold">Orders</span>
+            </button>
+
+          </div>
+
+          <p className='mt-42 text-gray-400'>Fashion by RawAura</p>
         </div>
       )}
 
-      {/* ... Orders Modal ... */}
-      {/* ... Cart Modal ... */}
-      {/* ... Checkout Modal ... */}
-      {/* These modals remain exactly the same as your previous code */}
+      {/* ===================== USER ORDERS MODAL ===================== */}
       {isProfileOpen && (
         <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-             {/* Copy existing Order Modal code here */}
-             <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 md:p-8 relative animate-in fade-in zoom-in duration-200">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 md:p-8 relative animate-in fade-in zoom-in duration-200">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold flex items-center gap-2"><Package className="text-black" /> My Orders</h2>
               <button onClick={() => { setIsProfileOpen(false); setUserOrders(null); setMobileInput(""); setOrderError(""); }} className="p-2 bg-gray-100 cursor-pointer rounded-full hover:bg-gray-200 transition"><X size={20} /></button>
@@ -355,11 +381,11 @@ export default function Navbar() {
                   {userOrders.map((order, idx) => (
                     <div key={order._id || idx} className="border border-gray-100 rounded-2xl p-4 bg-gray-50 hover:bg-white hover:shadow-md transition-all duration-300">
                       <div className="flex justify-between items-start mb-2">
-                         <div>
-                            <p className="font-bold text-gray-900">{order.items?.[0]?.name} {order.items?.length > 1 && `+ ${order.items.length - 1} others`}</p>
-                            <p className="text-xs text-gray-400 mt-1">ID: {order._id?.slice(-6).toUpperCase()}</p>
-                         </div>
-                         <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider ${order.status === 'Delivered' ? 'bg-green-100 text-green-700' : order.status === 'Cancelled' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>{order.status || 'Pending'}</span>
+                        <div>
+                          <p className="font-bold text-gray-900">{order.items?.[0]?.name} {order.items?.length > 1 && `+ ${order.items.length - 1} others`}</p>
+                          <p className="text-xs text-gray-400 mt-1">ID: {order._id?.slice(-6).toUpperCase()}</p>
+                        </div>
+                        <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider ${order.status === 'Delivered' ? 'bg-green-100 text-green-700' : order.status === 'Cancelled' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>{order.status || 'Pending'}</span>
                       </div>
                       <div className="flex justify-between items-end mt-4 pt-3 border-t border-gray-200/50">
                         <div className="flex items-center gap-2 text-sm text-gray-500"><Truck size={14} /><span>{new Date(order.createdAt).toLocaleDateString()}</span></div>
@@ -375,10 +401,10 @@ export default function Navbar() {
         </div>
       )}
 
+      {/* ===================== SHOPPING CART MODAL ===================== */}
       {isCartOpen && (
         <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-            {/* Copy existing Cart Modal code here */}
-            <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 md:p-8 relative animate-in fade-in zoom-in duration-200">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 md:p-8 relative animate-in fade-in zoom-in duration-200">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold flex items-center gap-2"><ShoppingBag className="text-black" /> Your Cart</h2>
               <button onClick={() => { setIsCartOpen(false); setUserCart(null); setCartMobileInput(""); setCartError(""); }} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 cursor-pointer
@@ -401,7 +427,7 @@ export default function Navbar() {
                     const currentId = item.productId || item._id;
                     return (
                       <div key={currentId || idx} className="flex gap-4 border border-gray-100 rounded-2xl p-3 bg-white shadow-sm hover:shadow-md transition-all relative group">
-                        <button 
+                        <button
                           onClick={() => handleRemoveFromCart(currentId)}
                           className="absolute -top-2 -right-2 bg-white text-red-500 p-1.5 rounded-full shadow-md border border-gray-100 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 z-10 cursor-pointer"
                           title="Remove from cart"
@@ -417,11 +443,11 @@ export default function Navbar() {
                         </div>
                         <div className="flex-1 flex flex-col justify-between">
                           <div>
-                              <h4 className="font-bold text-gray-900 line-clamp-1">{item.name}</h4>
-                              <p className="text-sm text-gray-500">Size: {item.size} • Qty: {item.quantity}</p>
+                            <h4 className="font-bold text-gray-900 line-clamp-1">{item.name}</h4>
+                            <p className="text-sm text-gray-500">Size: {item.size} • Qty: {item.quantity}</p>
                           </div>
                           <div className="flex justify-between items-end">
-                              <span className="font-bold">₹{item.price}</span>
+                            <span className="font-bold">₹{item.price}</span>
                           </div>
                         </div>
                       </div>
@@ -429,11 +455,11 @@ export default function Navbar() {
                   })}
                 </div>
                 <div className="border-t border-gray-100 pt-4 mt-2">
-                   <div className="flex justify-between items-center mb-4">
-                      <span className="text-gray-500">Total Items</span>
-                      <span className="font-bold">{userCart.length}</span>
-                   </div>
-                   <button onClick={handleProceedToCheckout} className="w-full bg-black text-white py-4 rounded-xl font-bold hover:bg-gray-900 transition shadow-lg flex justify-center cursor-pointer items-center gap-2">Proceed to Checkout <ChevronRight size={18}/></button>
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-gray-500">Total Items</span>
+                    <span className="font-bold">{userCart.length}</span>
+                  </div>
+                  <button onClick={handleProceedToCheckout} className="w-full bg-black text-white py-4 rounded-xl font-bold hover:bg-gray-900 transition shadow-lg flex justify-center cursor-pointer items-center gap-2">Proceed to Checkout <ChevronRight size={18} /></button>
                 </div>
                 <button onClick={() => { setUserCart(null); setCartError(""); }} className="w-full py-2 text-gray-400 hover:text-gray-600 text-xs text-center cursor-pointer">Change Number</button>
               </div>
@@ -442,10 +468,10 @@ export default function Navbar() {
         </div>
       )}
 
+      {/* ===================== CHECKOUT MODAL ===================== */}
       {isCheckoutOpen && (
         <div className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-md flex justify-center items-center p-4">
-           {/* Copy existing Checkout Modal code here */}
-           <div className="bg-white w-full max-w-2xl rounded-3xl p-8 shadow-2xl border border-gray-100 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-300">
+          <div className="bg-white w-full max-w-2xl rounded-3xl p-8 shadow-2xl border border-gray-100 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-300">
             <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-100">
               <div>
                 <h2 className="text-3xl font-bold text-gray-900">Checkout</h2>
@@ -460,16 +486,16 @@ export default function Navbar() {
                   <div className="space-y-3">
                     {checkoutItems.map((item, idx) => (
                       <div key={idx} className="flex gap-4 border border-gray-100 rounded-2xl p-3 bg-gray-50 hover:bg-white hover:shadow-sm transition-all relative group">
-                        <button 
-                          onClick={() => handleRemoveFromCheckout(idx)} 
-                          className="absolute -top-2 -right-2 bg-white text-red-500 p-1.5 rounded-full shadow-md border border-gray-100 opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-pointer" 
+                        <button
+                          onClick={() => handleRemoveFromCheckout(idx)}
+                          className="absolute -top-2 -right-2 bg-white text-red-500 p-1.5 rounded-full shadow-md border border-gray-100 opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-pointer"
                           title="Remove item"
                         >
                           <Trash2 size={16} />
                         </button>
-                        
+
                         <div className="h-16 w-16 bg-white rounded-xl overflow-hidden shrink-0 border border-gray-200">
-                          {item.image ? (<img src={item.image} alt={item.name} className="h-full w-full object-cover" />) : (<div className="h-full w-full flex items-center justify-center text-gray-300"><Package size={16}/></div>)}
+                          {item.image ? (<img src={item.image} alt={item.name} className="h-full w-full object-cover" />) : (<div className="h-full w-full flex items-center justify-center text-gray-300"><Package size={16} /></div>)}
                         </div>
                         <div className="flex-1 flex justify-between items-center">
                           <div>
@@ -489,16 +515,16 @@ export default function Navbar() {
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg text-gray-900 flex items-center gap-2"><div className="w-1 h-6 bg-black rounded-full"></div> Personal Details</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input name="name" onChange={handleCheckoutFormChange} placeholder="Full Name" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all"/>
-                  <input type="text" value={cartMobileInput} disabled className="w-full bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-gray-500 cursor-not-allowed" title="Mobile number from cart login"/>
+                  <input name="name" onChange={handleCheckoutFormChange} placeholder="Full Name" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all" />
+                  <input type="text" value={cartMobileInput} disabled className="w-full bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-gray-500 cursor-not-allowed" title="Mobile number from cart login" />
                 </div>
-                <input name="email" onChange={handleCheckoutFormChange} placeholder="Email Address" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all"/>
+                <input name="email" onChange={handleCheckoutFormChange} placeholder="Email Address" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all" />
               </div>
               <div className="space-y-4 pt-2">
-                 <h3 className="font-semibold text-lg text-gray-900 flex items-center gap-2"><div className="w-1 h-6 bg-black rounded-full"></div> Shipping Address</h3>
+                <h3 className="font-semibold text-lg text-gray-900 flex items-center gap-2"><div className="w-1 h-6 bg-black rounded-full"></div> Shipping Address</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {["room", "building", "area", "landmark", "city", "district", "state", "country"].map((field) => (
-                    <input key={field} name={`address.${field}`} onChange={handleCheckoutFormChange} placeholder={field.charAt(0).toUpperCase() + field.slice(1)} className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all ${field === 'area' || field === 'landmark' ? 'md:col-span-2' : ''}`}/>
+                    <input key={field} name={`address.${field}`} onChange={handleCheckoutFormChange} placeholder={field.charAt(0).toUpperCase() + field.slice(1)} className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all ${field === 'area' || field === 'landmark' ? 'md:col-span-2' : ''}`} />
                   ))}
                 </div>
               </div>
