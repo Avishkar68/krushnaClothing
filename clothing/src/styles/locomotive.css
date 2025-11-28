@@ -1,0 +1,11 @@
+html, body {
+  height: auto;
+}
+
+[data-scroll-container] {
+  overflow: hidden;
+}
+
+[data-scroll] {
+  will-change: transform;
+}
