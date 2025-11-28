@@ -15,6 +15,7 @@ import FAQ from "./pages/FAQ";
 import AboutUs from "./pages/AboutUs";
 import Shop from "./pages/Shop";
 import ProtectedAdmin from "./components/ProtectedAdmin";
+import BlogDetails from "./pages/BlogDetails";
 
 const Layout = () => {
   return (
@@ -41,6 +42,8 @@ const router = createBrowserRouter([
       { path: "/faq", element: <FAQ /> }, 
       { path: "/about-us", element: <AboutUs /> }, 
       { path: "/shop-now", element: <Shop /> }, 
+      {path:"/blog/:id" ,element:<BlogDetails />}
+
     ],
   },
   // Admin Route moved OUTSIDE the Layout (No Navbar/Footer)

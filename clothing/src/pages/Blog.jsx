@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const Blog = () => {
   const blogs = [
@@ -53,6 +54,7 @@ const Blog = () => {
             <img
               src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=1400&q=80"
               className="w-full h-full object-cover"
+              alt=""
             />
           </div>
 
@@ -68,9 +70,14 @@ const Blog = () => {
               is crafted to help you feel bold, confident, and authentically you. 
               Here’s how our design philosophy empowers individuality.
             </p>
-            <button className="px-6 py-3 bg-black text-white rounded-xl font-medium hover:bg-gray-800 transition">
-              Read More
-            </button>
+
+            {/* Featured blog → always links to blog 1 */}
+            <Link
+              to="/blog/1"
+              className="text-black font-semibold hover:underline"
+            >
+              Read More →
+            </Link>
           </div>
         </div>
       </section>
@@ -88,6 +95,7 @@ const Blog = () => {
               <div className="h-52 w-full overflow-hidden">
                 <img
                   src={blog.img}
+                  alt={blog.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition duration-300"
                 />
               </div>
@@ -101,9 +109,12 @@ const Blog = () => {
                   {blog.desc}
                 </p>
 
-                <button className="text-black font-semibold hover:underline">
+                <Link
+                  to={`/blog/${blog.id}`}
+                  className="text-black font-semibold hover:underline"
+                >
                   Read More →
-                </button>
+                </Link>
               </div>
             </div>
           ))}
